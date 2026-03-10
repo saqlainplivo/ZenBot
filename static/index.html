@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenBot - AI Assistant</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366F1',
+                        dark: '#0F172A',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        /* Loading dots */
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Hide by default */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-white">
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="hidden h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div class="w-full max-w-md p-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-bold mb-2">Welcome to ZenBot</h1>
+                <p class="text-slate-400">Your AI assistant for Zendesk tickets</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">Sign In</h2>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            required
+                            class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                            placeholder="your@email.com"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            required
+                            class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-lg transition-colors">
+                        Sign In
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <button onclick="showSignUp()" class="text-indigo-400 hover:text-indigo-300 text-sm">
+                        Don't have an account? <span class="font-semibold">Sign Up</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signupForm" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">Create Account</h2>
+                <form onsubmit="handleSignUp(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                        <input
+                            type="text"
+                            id="signupName"
+                            required
+                            class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                            placeholder="John Doe"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                        <input
+                            type="email"
+                            id="signupEmail"
+                            required
+                            class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                            placeholder="your@email.com"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                        <input
+                            type="password"
+                            id="signupPassword"
+                            required
+                            minlength="6"
+                            class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-lg transition-colors">
+                        Create Account
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <button onclick="showLogin()" class="text-indigo-400 hover:text-indigo-300 text-sm">
+                        Already have an account? <span class="font-semibold">Sign In</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden h-screen flex">
+
+        <!-- Sidebar -->
+        <div class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-800">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white">
+                        AI
+                    </div>
+                    <h1 class="text-xl font-bold">ZenBot</h1>
+                </div>
+                <button
+                    onclick="newChat()"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Chat
+                </button>
+            </div>
+
+            <!-- Conversations -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div class="text-sm text-slate-500 font-medium mb-3">Recent Chats</div>
+                <div id="conversations" class="space-y-2">
+                    <div class="text-center py-8 text-slate-600 text-sm">
+                        No conversations yet
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-slate-800 p-4">
+                <div id="stats" class="bg-slate-800 rounded-lg p-3 mb-3 text-sm">
+                    <div class="text-slate-400 font-medium mb-2">System Status</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-slate-500 text-xs">Chunks</div>
+                            <div class="text-white font-semibold">Loading...</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-500 text-xs">Vectors</div>
+                            <div class="text-white font-semibold">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Info -->
+                <div id="userInfo"></div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col">
+
+            <!-- Messages -->
+            <div id="messages" class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Welcome Screen -->
+                    <div id="welcome" class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                        <div class="mb-8">
+                            <div class="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-4xl font-bold mb-3">Welcome to ZenBot</h2>
+                            <p class="text-xl text-slate-400">Your AI assistant for Zendesk tickets</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                            <button onclick="askExample('What are common DTMF issues?')"
+                                    class="bg-slate-900 border border-slate-800 hover:border-indigo-600 p-6 rounded-xl text-left transition-all group">
+                                <div class="w-12 h-12 bg-indigo-600/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-600/20 transition-colors">
+                                    <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold mb-2">Common Issues</h3>
+                                <p class="text-sm text-slate-400">What are common DTMF issues?</p>
+                            </button>
+
+                            <button onclick="askExample('Why are SMS messages failing?')"
+                                    class="bg-slate-900 border border-slate-800 hover:border-indigo-600 p-6 rounded-xl text-left transition-all group">
+                                <div class="w-12 h-12 bg-cyan-600/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-cyan-600/20 transition-colors">
+                                    <svg class="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold mb-2">SMS Delivery</h3>
+                                <p class="text-sm text-slate-400">Why are SMS messages failing?</p>
+                            </button>
+
+                            <button onclick="askExample('How to fix voice quality issues?')"
+                                    class="bg-slate-900 border border-slate-800 hover:border-indigo-600 p-6 rounded-xl text-left transition-all group">
+                                <div class="w-12 h-12 bg-yellow-600/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-yellow-600/20 transition-colors">
+                                    <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold mb-2">Voice Quality</h3>
+                                <p class="text-sm text-slate-400">How to fix voice quality issues?</p>
+                            </button>
+
+                            <button onclick="askExample('What causes API timeouts?')"
+                                    class="bg-slate-900 border border-slate-800 hover:border-indigo-600 p-6 rounded-xl text-left transition-all group">
+                                <div class="w-12 h-12 bg-green-600/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-600/20 transition-colors">
+                                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-semibold mb-2">API Errors</h3>
+                                <p class="text-sm text-slate-400">What causes API timeouts?</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div id="chat" class="hidden space-y-6"></div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm p-6">
+                <div class="max-w-4xl mx-auto">
+                    <form onsubmit="sendMessage(event)" class="flex gap-3">
+                        <input
+                            type="text"
+                            id="messageInput"
+                            placeholder="Ask anything about tickets..."
+                            class="flex-1 bg-slate-800 text-white placeholder-slate-500 px-6 py-4 rounded-xl border border-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 transition-all"
+                        />
+                        <button
+                            type="submit"
+                            id="sendButton"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 rounded-xl transition-colors flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
