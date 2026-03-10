@@ -14,9 +14,8 @@ ENV/
 # Environment variables
 .env
 
-# Data files
-data/*.json
-!data/.gitkeep
+# Data files - large embedded file excluded
+data/5_embedded_chunks.json
 
 # Vector database
 qdrant_local_db/
