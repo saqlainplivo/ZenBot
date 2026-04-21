@@ -2,6 +2,8 @@
 
 Simple, fast AI chatbot for instant answers from your Zendesk tickets.
 
+![ZenBot UI](docs/screenshot.png)
+
 ## 🚀 Quick Start
 
 ```bash
